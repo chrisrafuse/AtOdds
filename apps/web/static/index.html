@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>AtOdds - Odds Analysis Platform</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">⚡ AtOdds</h1>
+                <p class="tagline">Professional Odds Analysis Platform</p>
+            </div>
+            <div class="header-actions">
+                <button id="apiDocsBtn" class="btn btn-secondary">API Docs</button>
+                <div class="status-indicator" id="apiStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Connecting...</span>
+                </div>
+                <span class="provider-badge" id="providerBadge" style="display:none;"></span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Input Section -->
+            <section class="card input-section">
+                <h2 class="section-title">📊 Analyze Odds Data</h2>
+
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="upload">Upload File</button>
+                    <button class="tab-btn" data-tab="sample">Use Sample Data</button>
+                    <button class="tab-btn" data-tab="paste">Paste JSON</button>
+                </div>
+
+                <!-- Upload Tab -->
+                <div class="tab-content active" id="upload-tab">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📁</div>
+                        <p class="upload-text">Drag & drop JSON file here or click to browse</p>
+                        <input type="file" id="fileInput" accept=".json" hidden>
+                        <button class="btn btn-primary" id="browseBtn">Browse Files</button>
+                    </div>
+                    <div class="file-info" id="fileInfo" style="display: none;">
+                        <span class="file-name" id="fileName"></span>
+                        <button class="btn-icon" id="clearFileBtn">✕</button>
+                    </div>
+                </div>
+
+                <!-- Sample Tab -->
+                <div class="tab-content" id="sample-tab">
+                    <div class="sample-info">
+                        <p>Load the sample dataset (10 NBA games × 8 sportsbooks = 80 records)</p>
+                        <button class="btn btn-primary" id="loadSampleBtn">Load Sample Data</button>
+                    </div>
+                </div>
+
+                <!-- Paste Tab -->
+                <div class="tab-content" id="paste-tab">
+                    <textarea
+                        id="jsonInput"
+                        class="json-input"
+                        placeholder='Paste your JSON data here...'
+                        rows="10"
+                    ></textarea>
+                    <button class="btn btn-primary" id="validateJsonBtn">Validate JSON</button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-large btn-success" id="analyzeBtn" disabled>
+                        🔍 Run Analysis
+                    </button>
+                    <button class="btn btn-large btn-outline" id="resetBtn">
+                        🔄 Reset
+                    </button>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="card results-section" id="resultsSection" style="display: none;">
+                <div class="results-header">
+                    <h2 class="section-title">📈 Analysis Results</h2>
+                    <div class="results-actions">
+                        <button class="btn btn-small" id="downloadResultsBtn">💾 Download</button>
+                        <button class="btn btn-small" id="generateBriefingBtn">📄 Generate Briefing</button>
+                    </div>
+                </div>
+
+                <!-- Summary Stats -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalFindings">0</div>
+                        <div class="stat-label">Total Findings</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="arbitrageCount">0</div>
+                        <div class="stat-label">Arbitrage</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="valueEdgeCount">0</div>
+                        <div class="stat-label">Value Edges</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="outlierCount">0</div>
+                        <div class="stat-label">Outliers</div>
+                    </div>
+                </div>
+
+                <!-- Findings List -->
+                <div class="findings-container">
+                    <h3 class="findings-title">🔍 Detailed Findings</h3>
+                    <div class="findings-filter">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="arbitrage">Arbitrage</button>
+                        <button class="filter-btn" data-filter="value_edge">Value Edges</button>
+                        <button class="filter-btn" data-filter="outlier">Outliers</button>
+                    </div>
+                    <div id="findingsList" class="findings-list"></div>
+                </div>
+
+                <!-- Sportsbook Rankings Table -->
+                <div class="rankings-section" id="rankingsSection" style="display:none;">
+                    <h3 class="findings-title">📊 Sportsbook Quality Rankings</h3>
+                    <table class="rankings-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Sportsbook</th>
+                                <th>Avg Vig</th>
+                                <th>Best Lines</th>
+                                <th>Stale</th>
+                                <th>Outliers</th>
+                                <th>Score</th>
+                                <th>Verdict</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rankingsBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Agent Reasoning Trace -->
+                <details class="trace-panel" id="tracePanel" style="display:none;">
+                    <summary class="trace-summary">🤖 Agent Reasoning Trace (<span id="traceCount">0</span> tool calls)</summary>
+                    <div id="toolTrace" class="tool-trace"></div>
+                </details>
+
+                <!-- LLM Summary -->
+                <div class="llm-summary" id="llmSummary" style="display:none;">
+                    <h3 class="findings-title">✨ AI Analysis Summary</h3>
+                    <div id="llmSummaryContent" class="llm-summary-content"></div>
+                </div>
+            </section>
+
+            <!-- Briefing Section -->
+            <section class="card briefing-section" id="briefingSection" style="display: none;">
+                <div class="briefing-header">
+                    <h2 class="section-title">📄 Analysis Briefing</h2>
+                    <button class="btn btn-small" id="copyBriefingBtn">📋 Copy</button>
+                </div>
+                <pre id="briefingContent" class="briefing-content"></pre>
+            </section>
+
+            <!-- Chat Section -->
+            <section class="card chat-section" id="chatSection" style="display: none;">
+                <div class="chat-header">
+                    <h2 class="section-title">💬 Ask the Agent</h2>
+                    <span class="chat-provider-badge" id="chatProviderBadge"></span>
+                </div>
+                <p class="chat-hint">Ask follow-up questions about the analysis. The agent answers from the briefing data only.</p>
+
+                <div class="quick-questions">
+                    <button class="quick-q" data-q="Which sportsbooks should I avoid tonight?">Which books to avoid?</button>
+                    <button class="quick-q" data-q="Explain the arbitrage opportunity you found">Explain arbitrage</button>
+                    <button class="quick-q" data-q="Which lines are stale and why does it matter?">Stale lines?</button>
+                    <button class="quick-q" data-q="What are the best value bets right now?">Best value bets?</button>
+                </div>
+
+                <div id="chatMessages" class="chat-messages"></div>
+
+                <div class="chat-input-row">
+                    <input
+                        type="text"
+                        id="chatInput"
+                        class="chat-input"
+                        placeholder="Why did you flag that game..."
+                        maxlength="500"
+                    />
+                    <button id="chatSendBtn" class="btn btn-primary" disabled>Send</button>
+                </div>
+            </section>
+
+            <!-- Loading Overlay -->
+            <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+                <div class="spinner"></div>
+                <p class="loading-text">Analyzing odds data...</p>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2026 AtOdds - Professional Odds Analysis Platform</p>
+            <p class="footer-links">
+                <a href="/docs" target="_blank">API Documentation</a> |
+                <a href="/redoc" target="_blank">ReDoc</a> |
+                <a href="https://github.com" target="_blank">GitHub</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# Web API Dependencies for AtOdds
+# Phase 6: FastAPI REST API Layer
+# Phase 8: LLM Integration
+
+# Core web framework (Python 3.14 compatible)
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+
+# File uploads
+python-multipart>=0.0.12
+
+# Async HTTP client (for testing/health checks)
+httpx>=0.28.0
+
+# CORS support (included with FastAPI)
+
+# Development/testing
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
+
+# LLM providers
+openai>=1.50.0
+anthropic>=0.40.0
+google-generativeai>=0.8.0
+
+# Environment variables
+python-dotenv>=1.0.03
